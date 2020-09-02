@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/17gstyron/BobDiscordBot#readme",
   "dependencies": {
-    "discord.js": "^12.2.0"
+    "discord.js": "^12.2.0",
+    "finnhub": "^1.2.1"
   }
 }
