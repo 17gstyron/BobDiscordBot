@@ -1,23 +1,39 @@
 const Discord = require('discord.js')
-const { token, finnhubToken } = require('./config')
+const { token } = require('./config')
 const client = new Discord.Client()
-const axios = require('axios')
-const finnhub = require('finnhub');
+const fs = require('fs')
 
-const api_key = finnhub.ApiClient.instance.authentications['api_key'];
-api_key.apiKey = `${finnhubToken}` // Replace this
-const finnhubClient = new finnhub.DefaultApi()
+client.commands = new Discord.Collection()
+const prefix = '$'
+
+const commandFiles = fs
+  .readdirSync('./commands')
+  .filter((file) => file.endsWith('.js'))
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`)
+  // set a new item in the Collection
+  // with the key as the command name and the value as the exported module
+  client.commands.set(command.name, command)
+}
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
-client.on('message', msg => {
-  if (msg.content.toLowerCase() === 'bob') {
-    msg.reply('Hello I am still learning and am of no use to you yet')
-    finnhubClient.supportResistance("AAPL", "D", (error, data, response) => {
-      console.log(data)
-    });
+client.on('message', (message) => {
+  if (!message.content.startsWith(prefix) || message.author.bot) return
+
+  const args = message.content.slice(prefix.length).trim().split(/ +/)
+  const command = args.shift().toLowerCase()
+
+  if (!client.commands.has(command)) return
+
+  try {
+    client.commands.get(command).execute(message, args)
+  } catch (error) {
+    console.error(error)
+    message.reply('You screwed something up')
   }
 })
 
